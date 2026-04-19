@@ -2,61 +2,120 @@
   font-size: 9px; font-weight: 500;
   letter-spacing: 0.08em; text-transform: uppercase;
   color: var(--text-tertiary);
+  display: flex; align-items: center; gap: 6px;
 }
-.header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
+.loadingDot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--green-400);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:0.3} 50%{opacity:1} }
+
+.header {
+  display: flex; align-items: center;
+  justify-content: space-between; margin-bottom: 0.75rem;
+}
 .addBtn {
   font-size: 11px; padding: 4px 10px;
   border: 0.5px solid var(--border-mid);
   border-radius: var(--radius-md);
   background: none; color: var(--text-secondary);
+  transition: background 0.12s, color 0.12s;
 }
 .addBtn:hover { background: var(--bg-muted); color: var(--text-primary); }
 
 .form {
   border: 0.5px solid var(--border-mid);
   border-radius: var(--radius-md);
-  padding: 0.85rem;
-  margin-bottom: 0.85rem;
+  padding: 0.9rem;
+  margin-bottom: 0.9rem;
   background: var(--bg-elevated);
 }
 .textarea {
-  width: 100%; padding: 8px;
-  font-size: 12px; resize: vertical; min-height: 64px;
-  border-radius: var(--radius-md);
+  width: 100%; padding: 8px 10px;
+  font-size: 12px; resize: vertical; min-height: 72px;
+  border-radius: var(--radius-sm);
   border: 0.5px solid var(--border-mid);
   background: var(--bg-muted);
   color: var(--text-primary);
+  line-height: 1.6;
+  transition: border-color 0.15s;
 }
 .textarea:focus { border-color: var(--green-400); outline: none; }
+.textareaError  { border-color: var(--red-400) !important; }
 
-.formRow { display: flex; gap: 8px; margin-top: 8px; align-items: center; }
+.charCount {
+  font-size: 10px; text-align: right;
+  margin-top: 4px; margin-bottom: 8px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-tertiary);
+  transition: color 0.15s;
+}
+
+.tagsInput {
+  width: 100%; font-size: 11px;
+  padding: 6px 10px; margin-bottom: 8px;
+  border: 0.5px solid var(--border-mid);
+  border-radius: var(--radius-sm);
+  background: var(--bg-muted);
+  color: var(--text-secondary);
+}
+.tagsInput::placeholder { color: var(--text-tertiary); }
+.tagsInput:focus { border-color: var(--green-400); outline: none; }
+
+.formRow { display: flex; gap: 8px; align-items: center; }
 .select  { flex: 1; font-size: 12px; padding: 6px 8px; }
 
 .submitBtn {
-  padding: 6px 14px;
+  padding: 7px 14px;
   background: var(--green-400); color: #fff;
   border: none; border-radius: var(--radius-md);
   font-size: 12px; font-weight: 500; white-space: nowrap;
+  transition: background 0.15s, opacity 0.15s;
 }
-.submitBtn:hover { background: var(--green-600); }
-.submitBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+.submitBtn:hover:not(:disabled) { background: var(--green-600); }
+.submitBtn:disabled { opacity: 0.35; cursor: not-allowed; }
 
-.empty { font-size: 12px; color: var(--text-tertiary); padding: 1.5rem 0; text-align: center; }
+.submitError {
+  font-size: 11px; color: var(--red-800);
+  background: var(--red-50); border: 0.5px solid var(--red-400);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px; margin-top: 8px;
+}
+
+.empty {
+  font-size: 12px; color: var(--text-tertiary);
+  padding: 1.5rem 0; text-align: center;
+}
+
 .list  { display: flex; flex-direction: column; gap: 8px; }
 .item  {
   border: 0.5px solid var(--border);
   border-radius: var(--radius-md);
   padding: 0.75rem 0.9rem;
   background: var(--bg-elevated);
+  transition: border-color 0.15s;
 }
-.meta  { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
-.passport { font-size: 11px; font-weight: 500; color: var(--text-secondary); }
-.date     { font-size: 10px; color: var(--text-tertiary); }
-.text     { font-size: 12px; color: var(--text-secondary); line-height: 1.65; }
-.tags     { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
-.tag      {
+.item:hover { border-color: var(--border-mid); }
+
+.meta {
+  display: flex; align-items: center;
+  gap: 6px; margin-bottom: 5px; flex-wrap: wrap;
+}
+.passport    { font-size: 11px; font-weight: 500; color: var(--text-secondary); }
+.date        { font-size: 10px; color: var(--text-tertiary); }
+.pendingBadge {
+  font-size: 9px; padding: 1px 6px;
+  border-radius: 3px;
+  background: var(--amber-50); color: var(--amber-800);
+  letter-spacing: 0.03em;
+}
+
+.text { font-size: 12px; color: var(--text-secondary); line-height: 1.7; }
+
+.tags { display: flex; gap: 4px; margin-top: 7px; flex-wrap: wrap; }
+.tag  {
   font-size: 10px; padding: 2px 7px;
   border-radius: 4px;
-  background: var(--bg-muted);
-  color: var(--text-tertiary);
+  background: var(--bg-muted); color: var(--text-tertiary);
 }
