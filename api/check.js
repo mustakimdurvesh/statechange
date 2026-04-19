@@ -11,6 +11,10 @@
 
 export const config = { runtime: 'edge' }
 
+// ── Publishable Supabase credentials (safe in source) ─────────────
+const SUPABASE_URL = 'https://wijgarmlllvlqfzxgoee.supabase.co'
+const SUPABASE_KEY = 'sb_publishable_BmuItK5AvBrdqJM9NOTqGA_Zh84U75U'
+
 // ── Allowlists ────────────────────────────────────────────────────
 const VALID_PASSPORTS = new Set([
   'IN','PK','AE','GB','US','DE','AU','SG','JP','NG','BR','ZA'
@@ -37,7 +41,7 @@ const CORS = {
   'Access-Control-Allow-Methods': 'GET, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type',
 }
-function json(body, status = 200, extra = {}) {
+function jsonResp(body, status = 200, extra = {}) {
   return new Response(JSON.stringify(body), {
     status,
     headers: { 'Content-Type': 'application/json', ...CORS, ...extra },
@@ -66,24 +70,21 @@ Rules:
 - community is always []
 - Return ONLY the JSON object.`
 
-// ── Supabase REST helper (edge-compatible, no Node APIs) ──────────
-function sbHeaders(serviceKey) {
-  return {
-    'apikey':        serviceKey,
-    'Authorization': `Bearer ${serviceKey}`,
-    'Content-Type':  'application/json',
-    'Prefer':        'return=minimal',
-  }
+// ── Supabase REST helpers (publishable key, edge-compatible) ──────
+const SB_HEADERS = {
+  'apikey':        SUPABASE_KEY,
+  'Authorization': `Bearer ${SUPABASE_KEY}`,
+  'Content-Type':  'application/json',
 }
 
-async function fetchCommunityReports(supabaseUrl, serviceKey, from, to) {
+async function fetchCommunityReports(from, to) {
   try {
-    const url = `${supabaseUrl}/rest/v1/community_reports`
+    const url = `${SUPABASE_URL}/rest/v1/community_reports`
       + `?from_code=eq.${from}&to_code=eq.${to}&flagged=eq.false`
       + `&order=created_at.desc&limit=15`
       + `&select=passport,report_text,tags,created_at`
 
-    const res = await fetch(url, { headers: { ...sbHeaders(serviceKey), 'Prefer': 'return=representation' } })
+    const res = await fetch(url, { headers: SB_HEADERS })
     if (!res.ok) return []
     return await res.json()
   } catch {
@@ -91,15 +92,16 @@ async function fetchCommunityReports(supabaseUrl, serviceKey, from, to) {
   }
 }
 
-async function logSearch(supabaseUrl, serviceKey, from, to, verdict) {
+async function logSearch(from, to, verdict) {
   try {
-    await fetch(`${supabaseUrl}/rest/v1/searches`, {
-      method: 'POST',
-      headers: sbHeaders(serviceKey),
-      body: JSON.stringify({ from_code: from, to_code: to, verdict }),
+    // Fire-and-forget — never awaited by the caller
+    fetch(`${SUPABASE_URL}/rest/v1/searches`, {
+      method:  'POST',
+      headers: { ...SB_HEADERS, 'Prefer': 'return=minimal' },
+      body:    JSON.stringify({ from_code: from, to_code: to, verdict }),
     })
   } catch {
-    // fire-and-forget — never block the response
+    // intentionally silent
   }
 }
 
@@ -109,43 +111,39 @@ export default async function handler(req) {
     return new Response(null, { status: 204, headers: CORS })
   }
 
-  // 2. Parse + validate
+  // 2. Parse + validate inputs
   const { searchParams } = new URL(req.url)
   const from = (searchParams.get('from') || '').toUpperCase().trim()
   const to   = (searchParams.get('to')   || '').toUpperCase().trim()
 
   if (!VALID_PASSPORTS.has(from) || !VALID_DESTINATIONS.has(to)) {
-    return json({ error: 'Invalid country codes.' }, 400)
+    return jsonResp({ error: 'Invalid country codes.' }, 400)
   }
   if (!isSafeInput(from) || !isSafeInput(to)) {
-    return json({ error: 'Invalid input.' }, 400)
+    return jsonResp({ error: 'Invalid input.' }, 400)
   }
 
   // 4. Rate limiting (uncomment after adding Vercel KV)
-  // import { kv } from '@vercel/kv'
   // const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
   // const count = await kv.incr(`sc:rl:${ip}`)
   // if (count === 1) await kv.expire(`sc:rl:${ip}`, 60)
-  // if (count > 20) return json({ error: 'Rate limit exceeded.' }, 429, { 'Retry-After': '60' })
+  // if (count > 20) return jsonResp({ error: 'Rate limit exceeded.' }, 429, { 'Retry-After': '60' })
 
-  const GROQ_API_KEY   = process.env.GROQ_API_KEY
-  const SUPABASE_URL   = process.env.SUPABASE_URL
-  const SUPABASE_KEY   = process.env.SUPABASE_SERVICE_KEY  // service key — server only, never VITE_
+  const GROQ_API_KEY = process.env.GROQ_API_KEY
+  if (!GROQ_API_KEY) return jsonResp({ error: 'Service not configured.' }, 503)
 
-  if (!GROQ_API_KEY) return json({ error: 'Service not configured.' }, 503)
-
-  // 5. LLM call + 7. Community fetch — run in parallel
+  // 5 + 7. LLM call and community fetch in parallel
   const [groqRes, communityRaw] = await Promise.all([
     fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${GROQ_API_KEY}`,
-        'Content-Type': 'application/json',
+        'Content-Type':  'application/json',
       },
       body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        temperature: 0.2,
-        max_tokens: 1200,
+        model:           'llama-3.3-70b-versatile',
+        temperature:     0.2,
+        max_tokens:      1200,
         response_format: { type: 'json_object' },
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
@@ -153,12 +151,10 @@ export default async function handler(req) {
         ],
       }),
     }),
-    (SUPABASE_URL && SUPABASE_KEY)
-      ? fetchCommunityReports(SUPABASE_URL, SUPABASE_KEY, from, to)
-      : Promise.resolve([]),
+    fetchCommunityReports(from, to),
   ])
 
-  // 6. Parse + validate LLM response
+  // 6. Parse + validate LLM output
   let parsed
   try {
     if (!groqRes.ok) throw new Error(`Groq ${groqRes.status}`)
@@ -167,16 +163,16 @@ export default async function handler(req) {
     parsed         = JSON.parse(raw.replace(/```json|```/g, '').trim())
   } catch (err) {
     console.error('[StateChange] LLM error:', err.message)
-    return json({ error: 'Failed to fetch entry data. Please try again.' }, 502)
+    return jsonResp({ error: 'Failed to fetch entry data. Please try again.' }, 502)
   }
 
   const REQUIRED = ['verdict','vtype','duration','extend','cost','processing','brief','gotchas']
   for (const f of REQUIRED) {
-    if (!(f in parsed)) return json({ error: 'Malformed response. Please try again.' }, 502)
+    if (!(f in parsed)) return jsonResp({ error: 'Malformed response. Please try again.' }, 502)
   }
   if (!['free','voa','visa','no'].includes(parsed.verdict)) parsed.verdict = 'visa'
 
-  // 7. Inject community reports
+  // 7. Merge community reports
   parsed.community = communityRaw.map(r => ({
     passport: r.passport,
     date:     new Date(r.created_at).toLocaleString('en', { month: 'short', year: 'numeric' }),
@@ -184,10 +180,8 @@ export default async function handler(req) {
     tags:     r.tags ?? [],
   }))
 
-  // 8. Log search (fire-and-forget — does not block response)
-  if (SUPABASE_URL && SUPABASE_KEY) {
-    logSearch(SUPABASE_URL, SUPABASE_KEY, from, to, parsed.verdict)
-  }
+  // 8. Log search (non-blocking)
+  logSearch(from, to, parsed.verdict)
 
-  return json(parsed)
+  return jsonResp(parsed)
 }
