@@ -1,0 +1,59 @@
+.main {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 0 1.25rem 3rem;
+}
+.hero { text-align: center; padding: 2rem 0 1.25rem; }
+.h1 {
+  font-size: 22px; font-weight: 500;
+  color: var(--text-primary);
+  letter-spacing: -0.02em; margin-bottom: 0.4rem;
+}
+.sub { font-size: 13px; color: var(--text-tertiary); }
+
+.searchRow {
+  display: flex; align-items: flex-end;
+  gap: 10px; flex-wrap: wrap; margin-bottom: 0.5rem;
+}
+.selWrap { flex: 1; min-width: 150px; }
+.label {
+  display: block; font-size: 10px; font-weight: 500;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--text-tertiary); margin-bottom: 5px;
+}
+.arrowIcon { font-size: 18px; color: var(--text-tertiary); padding-bottom: 8px; flex-shrink: 0; }
+
+.goBtn {
+  padding: 9px 22px;
+  background: var(--green-400); color: #fff;
+  border: none; border-radius: var(--radius-md);
+  font-size: 13px; font-weight: 500;
+  white-space: nowrap; flex-shrink: 0;
+  transition: background 0.15s, transform 0.1s;
+}
+.goBtn:hover:not(:disabled) { background: var(--green-600); }
+.goBtn:active:not(:disabled) { transform: scale(0.98); }
+.goBtn:disabled { background: var(--bg-muted); color: var(--text-tertiary); cursor: not-allowed; }
+
+.error {
+  font-size: 12px; color: var(--red-800);
+  padding: 0.6rem 0.85rem;
+  background: var(--red-50);
+  border: 0.5px solid var(--red-400);
+  border-radius: var(--radius-md);
+  margin-top: 0.5rem;
+}
+.thinking {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 13px; color: var(--text-tertiary);
+  padding: 1.5rem; justify-content: center;
+}
+.spinner {
+  width: 14px; height: 14px;
+  border: 1.5px solid var(--border-mid);
+  border-top-color: var(--green-400);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite; flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.disclaimer { font-size: 10px; color: var(--text-tertiary); text-align: center; margin-top: 2rem; line-height: 1.7; }

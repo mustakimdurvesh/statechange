@@ -1,0 +1,11 @@
+.pill {
+  display: inline-block;
+  font-size: 11px; font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+.free { background: var(--green-50); color: var(--green-800); }
+.voa  { background: var(--blue-50);  color: var(--blue-800);  }
+.visa { background: var(--amber-50); color: var(--amber-800); }
+.no   { background: var(--red-50);   color: var(--red-800);   }

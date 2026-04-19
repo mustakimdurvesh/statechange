@@ -1,0 +1,62 @@
+.sectionTitle {
+  font-size: 9px; font-weight: 500;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+.header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
+.addBtn {
+  font-size: 11px; padding: 4px 10px;
+  border: 0.5px solid var(--border-mid);
+  border-radius: var(--radius-md);
+  background: none; color: var(--text-secondary);
+}
+.addBtn:hover { background: var(--bg-muted); color: var(--text-primary); }
+
+.form {
+  border: 0.5px solid var(--border-mid);
+  border-radius: var(--radius-md);
+  padding: 0.85rem;
+  margin-bottom: 0.85rem;
+  background: var(--bg-elevated);
+}
+.textarea {
+  width: 100%; padding: 8px;
+  font-size: 12px; resize: vertical; min-height: 64px;
+  border-radius: var(--radius-md);
+  border: 0.5px solid var(--border-mid);
+  background: var(--bg-muted);
+  color: var(--text-primary);
+}
+.textarea:focus { border-color: var(--green-400); outline: none; }
+
+.formRow { display: flex; gap: 8px; margin-top: 8px; align-items: center; }
+.select  { flex: 1; font-size: 12px; padding: 6px 8px; }
+
+.submitBtn {
+  padding: 6px 14px;
+  background: var(--green-400); color: #fff;
+  border: none; border-radius: var(--radius-md);
+  font-size: 12px; font-weight: 500; white-space: nowrap;
+}
+.submitBtn:hover { background: var(--green-600); }
+.submitBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.empty { font-size: 12px; color: var(--text-tertiary); padding: 1.5rem 0; text-align: center; }
+.list  { display: flex; flex-direction: column; gap: 8px; }
+.item  {
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 0.9rem;
+  background: var(--bg-elevated);
+}
+.meta  { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+.passport { font-size: 11px; font-weight: 500; color: var(--text-secondary); }
+.date     { font-size: 10px; color: var(--text-tertiary); }
+.text     { font-size: 12px; color: var(--text-secondary); line-height: 1.65; }
+.tags     { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
+.tag      {
+  font-size: 10px; padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--bg-muted);
+  color: var(--text-tertiary);
+}

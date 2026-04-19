@@ -1,0 +1,32 @@
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.5rem;
+  border-bottom: 0.5px solid var(--border);
+  background: var(--bg-surface);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.logo { display: flex; align-items: center; gap: 10px; }
+.mark {
+  width: 30px; height: 30px;
+  border-radius: 7px;
+  background: var(--green-400);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.name { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; color: var(--text-primary); }
+.sub  { font-size: 10px; color: var(--text-tertiary); margin-top: 1px; }
+.nav  { display: flex; gap: 6px; }
+.pill {
+  font-size: 12px; padding: 4px 12px;
+  border-radius: 20px;
+  border: 0.5px solid var(--border-mid);
+  color: var(--text-secondary);
+  background: none;
+  transition: background 0.15s, color 0.15s;
+}
+.pill:hover { background: var(--bg-muted); color: var(--text-primary); }
+.active { background: var(--green-50); color: var(--green-800); border-color: var(--green-100); }
