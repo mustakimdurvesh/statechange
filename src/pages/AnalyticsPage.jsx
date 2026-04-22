@@ -124,8 +124,10 @@ export default function AnalyticsPage() {
           <h1 className={styles.h1}>Analytics</h1>
           <p className={styles.sub}>Last 30 days · {data?.lastUpdated ?? '—'}</p>
         </div>
-        {data?.lastUpdated === 'demo mode' && (
-          <span className={styles.demoBadge}>demo data</span>
+        {(data?.lastUpdated === 'demo mode' || data?.lastUpdated?.startsWith('no data')) && (
+          <span className={styles.demoBadge}>
+            {data?.lastUpdated?.startsWith('no data') ? 'run supabase-schema.sql to enable live data' : 'demo data'}
+          </span>
         )}
       </div>
 

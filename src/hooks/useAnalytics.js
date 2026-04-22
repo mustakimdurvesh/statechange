@@ -73,16 +73,27 @@ export function useAnalytics() {
       .order('created_at', { ascending: true })
       .then(({ data: rows, error: err }) => {
         if (err) {
-          setError(err.message)
+          // Table doesn't exist yet (schema not run) — fall back to demo silently
+          const tableNotFound = err.message?.includes('schema cache') || err.message?.includes('does not exist')
+          if (tableNotFound) {
+            setData(buildDemo())
+          } else {
+            setError(err.message)
+          }
         } else {
           const all = rows ?? []
-          setData({
-            totalSearches: all.length,
-            timeSeries:    groupByDay(all),
-            verdicts:      groupByVerdict(all),
-            routes:        topRoutes(all),
-            lastUpdated:   new Date().toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' }),
-          })
+          // No real data yet — show demo so the page is never empty
+          if (all.length === 0) {
+            setData({ ...buildDemo(), lastUpdated: 'no data yet — showing demo' })
+          } else {
+            setData({
+              totalSearches: all.length,
+              timeSeries:    groupByDay(all),
+              verdicts:      groupByVerdict(all),
+              routes:        topRoutes(all),
+              lastUpdated:   new Date().toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' }),
+            })
+          }
         }
         setLoading(false)
       })
