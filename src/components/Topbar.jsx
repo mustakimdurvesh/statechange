@@ -1,6 +1,12 @@
 import { Link, useLocation } from 'react-router-dom'
 import styles from './Topbar.module.css'
 
+const NAV = [
+  { to: '/',          label: 'Entry check' },
+  { to: '/history',   label: 'History'     },
+  { to: '/analytics', label: 'Analytics'   },
+]
+
 export default function Topbar() {
   const { pathname } = useLocation()
 
@@ -20,8 +26,15 @@ export default function Topbar() {
         </div>
       </Link>
       <nav className={styles.nav}>
-        <Link to="/"        className={`${styles.pill} ${pathname === '/'        ? styles.active : ''}`}>Entry check</Link>
-        <Link to="/history" className={`${styles.pill} ${pathname === '/history' ? styles.active : ''}`}>History</Link>
+        {NAV.map(({ to, label }) => (
+          <Link
+            key={to}
+            to={to}
+            className={`${styles.pill} ${pathname === to ? styles.active : ''}`}
+          >
+            {label}
+          </Link>
+        ))}
       </nav>
     </header>
   )

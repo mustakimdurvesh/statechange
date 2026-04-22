@@ -1,0 +1,178 @@
+.main {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 0 1.25rem 3rem;
+}
+
+/* ── Page header ── */
+.pageHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 1.75rem 0 1.25rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.h1 {
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  margin-bottom: 3px;
+}
+.sub { font-size: 11px; color: var(--text-tertiary); }
+
+.demoBadge {
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: var(--amber-50);
+  color: var(--amber-800);
+  border: 0.5px solid var(--amber-400);
+  align-self: flex-start;
+  margin-top: 4px;
+}
+
+.errorBanner {
+  font-size: 12px;
+  color: var(--red-800);
+  background: var(--red-50);
+  border: 0.5px solid var(--red-400);
+  border-radius: var(--radius-md);
+  padding: 0.65rem 0.9rem;
+  margin-bottom: 1rem;
+}
+
+/* ── Stat cards ── */
+.statGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+  margin-bottom: 1.5rem;
+}
+.statCard {
+  background: var(--bg-surface);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.1rem;
+}
+.statLabel {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-bottom: 6px;
+}
+.statValue {
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  margin-bottom: 4px;
+}
+.statSub { font-size: 11px; color: var(--text-tertiary); }
+
+/* ── Sections ── */
+.section {
+  background: var(--bg-surface);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.1rem 1.25rem;
+  margin-bottom: 1rem;
+}
+.sectionTitle {
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-bottom: 1rem;
+}
+
+/* ── Chart ── */
+.chartWrap { width: 100%; }
+
+.tooltip {
+  background: var(--bg-elevated);
+  border: 0.5px solid var(--border-mid);
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+}
+.tooltipLabel { font-size: 10px; color: var(--text-tertiary); margin-bottom: 3px; }
+.tooltipValue { font-size: 13px; font-weight: 500; color: var(--text-primary); }
+
+/* ── Two-col layout ── */
+.twoCol {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+@media (max-width: 580px) { .twoCol { grid-template-columns: 1fr; } }
+
+/* ── Verdict bars ── */
+.verdictList { display: flex; flex-direction: column; gap: 14px; }
+.verdictRow  { display: flex; align-items: center; gap: 10px; }
+.verdictLabel {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 12px; color: var(--text-secondary);
+  min-width: 110px; flex-shrink: 0;
+}
+.verdictDot {
+  width: 7px; height: 7px;
+  border-radius: 50%; flex-shrink: 0;
+}
+.verdictTrack {
+  flex: 1;
+  height: 4px;
+  background: var(--bg-muted);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.verdictFill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.verdictStats {
+  display: flex; gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+}
+.verdictPct   { font-size: 12px; font-weight: 500; color: var(--text-primary); min-width: 30px; text-align: right; }
+.verdictCount { font-size: 10px; color: var(--text-tertiary); min-width: 28px; }
+
+/* ── Route rows ── */
+.routeList { display: flex; flex-direction: column; gap: 2px; }
+.routeRow  {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 6px;
+  border-radius: var(--radius-sm);
+  transition: background 0.12s;
+}
+.routeRow:hover { background: var(--bg-elevated); }
+.routeRank  { font-size: 10px; color: var(--text-tertiary); min-width: 20px; font-variant-numeric: tabular-nums; }
+.routeFlags { font-size: 13px; flex-shrink: 0; }
+.routeNames {
+  display: flex; align-items: center; gap: 4px;
+  flex: 1; overflow: hidden;
+}
+.routeFrom  { font-size: 11px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 72px; }
+.routeArrow { font-size: 10px; color: var(--text-tertiary); flex-shrink: 0; }
+.routeTo    { font-size: 11px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 72px; }
+.routeVerdict { font-size: 10px; font-weight: 500; flex-shrink: 0; min-width: 46px; text-align: right; }
+.routeCount   { font-size: 11px; color: var(--text-tertiary); min-width: 28px; text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ── Skeleton ── */
+.skeleton {
+  background: var(--bg-elevated);
+  border-radius: var(--radius-md);
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+@keyframes shimmer {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 0.8; }
+}
