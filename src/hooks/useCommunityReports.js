@@ -1,89 +1,110 @@
 import { useState, useEffect, useCallback } from 'react'
-import { supabase } from '../lib/supabase'
+
+const SUPABASE_URL = 'https://wijgarmlllvlqfzxgoee.supabase.co'
+const SUPABASE_KEY = 'sb_publishable_BmuItK5AvBrdqJM9NOTqGA_Zh84U75U'
+
+const SB_HEADERS = {
+  'apikey':        SUPABASE_KEY,
+  'Authorization': `Bearer ${SUPABASE_KEY}`,
+  'Content-Type':  'application/json',
+}
 
 function formatDate(iso) {
   return new Date(iso).toLocaleString('en', { month: 'short', year: 'numeric' })
 }
 
-function shapeReport(r) {
-  return {
-    id:       r.id,
-    passport: r.passport,
-    date:     formatDate(r.created_at),
-    text:     r.report_text,
-    tags:     r.tags ?? [],
+async function getReports(fromCode, toCode) {
+  const url = `${SUPABASE_URL}/rest/v1/community_reports`
+    + `?from_code=eq.${fromCode}&to_code=eq.${toCode}&flagged=eq.false`
+    + `&order=created_at.desc&limit=20`
+    + `&select=id,passport,report_text,tags,created_at`
+
+  const res = await fetch(url, { headers: SB_HEADERS })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return res.json()
+}
+
+async function postReport(fromCode, toCode, passport, text, tags) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/community_reports`, {
+    method:  'POST',
+    headers: { ...SB_HEADERS, 'Prefer': 'return=minimal' },
+    body:    JSON.stringify({
+      from_code:   fromCode,
+      to_code:     toCode,
+      passport,
+      report_text: text,
+      tags,
+    }),
+  })
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(text || `HTTP ${res.status}`)
   }
 }
 
 export function useCommunityReports(fromCode, toCode, seedReports = []) {
-  // Seed with local db data first, then hydrate from Supabase if available
-  const [reports, setReports]     = useState(seedReports)
-  const [loading, setLoading]     = useState(false)
-  const [submitting, setSubmitting] = useState(false)
+  const [reports, setReports]         = useState(seedReports)
+  const [loading, setLoading]         = useState(false)
+  const [submitting, setSubmitting]   = useState(false)
   const [submitError, setSubmitError] = useState(null)
-  const [submitOk, setSubmitOk]   = useState(false)
+  const [submitOk, setSubmitOk]       = useState(false)
 
-  // Fetch live reports from Supabase on mount
+  // Fetch live reports on mount
   useEffect(() => {
-    if (!supabase || !fromCode || !toCode) return
+    if (!fromCode || !toCode) return
     setLoading(true)
-
-    supabase
-      .from('community_reports')
-      .select('id, passport, report_text, tags, created_at')
-      .eq('from_code', fromCode)
-      .eq('to_code', toCode)
-      .eq('flagged', false)
-      .order('created_at', { ascending: false })
-      .limit(20)
-      .then(({ data, error }) => {
-        if (error) {
-          console.warn('[StateChange] Failed to load community reports:', error.message)
-        } else if (data?.length) {
-          setReports(data.map(shapeReport))
+    getReports(fromCode, toCode)
+      .then(rows => {
+        if (rows.length > 0) {
+          setReports(rows.map(r => ({
+            id:       r.id,
+            passport: r.passport,
+            date:     formatDate(r.created_at),
+            text:     r.report_text,
+            tags:     r.tags ?? [],
+          })))
         }
-        setLoading(false)
       })
+      .catch(err => console.warn('[StateChange] Community fetch failed:', err.message))
+      .finally(() => setLoading(false))
   }, [fromCode, toCode])
 
-  // Submit a new report
+  // Reset form state when submit succeeds
+  useEffect(() => {
+    if (submitOk) {
+      const t = setTimeout(() => setSubmitOk(false), 2000)
+      return () => clearTimeout(t)
+    }
+  }, [submitOk])
+
   const submit = useCallback(async ({ passport, text, tags = [] }) => {
-    if (!text?.trim() || text.trim().length < 20) return
+    const trimmed = text?.trim()
+    if (!trimmed || trimmed.length < 20) return false
     setSubmitting(true)
     setSubmitError(null)
-    setSubmitOk(false)
 
-    // Optimistic update — show immediately
+    // Optimistic update
     const optimistic = {
       id:       `local-${Date.now()}`,
       passport,
       date:     formatDate(new Date().toISOString()),
-      text:     text.trim(),
+      text:     trimmed,
       tags:     tags.length ? tags : ['user report'],
     }
     setReports(prev => [optimistic, ...prev])
 
-    if (supabase) {
-      const { error } = await supabase.from('community_reports').insert({
-        from_code:   fromCode,
-        to_code:     toCode,
-        passport,
-        report_text: text.trim(),
-        tags:        optimistic.tags,
-      })
-
-      if (error) {
-        // Roll back optimistic update
-        setReports(prev => prev.filter(r => r.id !== optimistic.id))
-        setSubmitError('Failed to save report. Please try again.')
-        setSubmitting(false)
-        return false
-      }
+    try {
+      await postReport(fromCode, toCode, passport, trimmed, optimistic.tags)
+      setSubmitOk(true)
+      return true
+    } catch (err) {
+      // Roll back optimistic update
+      setReports(prev => prev.filter(r => r.id !== optimistic.id))
+      setSubmitError('Failed to save. Please try again.')
+      return false
+    } finally {
+      setSubmitting(false)
     }
-
-    setSubmitOk(true)
-    setSubmitting(false)
-    return true
   }, [fromCode, toCode])
 
   return { reports, loading, submit, submitting, submitError, submitOk }

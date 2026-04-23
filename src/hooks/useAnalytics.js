@@ -1,13 +1,44 @@
 import { useState, useEffect } from 'react'
-import { supabase } from '../lib/supabase'
 
+// Read credentials directly — same values as src/lib/supabase.js
+const SUPABASE_URL = 'https://wijgarmlllvlqfzxgoee.supabase.co'
+const SUPABASE_KEY = 'sb_publishable_BmuItK5AvBrdqJM9NOTqGA_Zh84U75U'
+
+// ── Raw REST fetch — bypasses PostgREST schema cache entirely ─────
+// The JS client caches the schema on init and throws if a table isn't
+// in its snapshot yet. Raw fetch hits the REST endpoint directly.
+async function fetchSearches() {
+  const thirtyDaysAgo = new Date()
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+  const url = `${SUPABASE_URL}/rest/v1/searches`
+    + `?created_at=gte.${thirtyDaysAgo.toISOString()}`
+    + `&select=from_code,to_code,verdict,created_at`
+    + `&order=created_at.asc`
+    + `&limit=5000`
+
+  const res = await fetch(url, {
+    headers: {
+      'apikey':        SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+    },
+  })
+
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(text || `HTTP ${res.status}`)
+  }
+
+  return res.json()
+}
+
+// ── Data shaping helpers ──────────────────────────────────────────
 function groupByDay(rows) {
   const map = {}
   rows.forEach(r => {
-    const day = r.created_at.slice(0, 10) // YYYY-MM-DD
+    const day = r.created_at.slice(0, 10)
     map[day] = (map[day] || 0) + 1
   })
-  // Fill in last 30 days (including zeros)
   const result = []
   const now = new Date()
   for (let i = 29; i >= 0; i--) {
@@ -15,8 +46,8 @@ function groupByDay(rows) {
     d.setDate(d.getDate() - i)
     const key = d.toISOString().slice(0, 10)
     result.push({
-      date:    key,
-      label:   d.toLocaleString('en', { month: 'short', day: 'numeric' }),
+      date:     key,
+      label:    d.toLocaleString('en', { month: 'short', day: 'numeric' }),
       searches: map[key] || 0,
     })
   }
@@ -27,7 +58,7 @@ function groupByVerdict(rows) {
   const counts = { free: 0, voa: 0, visa: 0, no: 0 }
   rows.forEach(r => {
     if (r.verdict in counts) counts[r.verdict]++
-    else counts.visa++ // fallback
+    else counts.visa++
   })
   const total = rows.length || 1
   return [
@@ -50,94 +81,66 @@ function topRoutes(rows, n = 8) {
     .slice(0, n)
 }
 
+// ── Hook ──────────────────────────────────────────────────────────
 export function useAnalytics() {
-  const [data, setData]     = useState(null)
+  const [data, setData]       = useState(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError]   = useState(null)
+  const [error, setError]     = useState(null)
 
   useEffect(() => {
-    if (!supabase) {
-      // Seed with plausible demo data when Supabase not configured
-      setData(buildDemo())
-      setLoading(false)
-      return
-    }
-
-    const thirtyDaysAgo = new Date()
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-
-    supabase
-      .from('searches')
-      .select('from_code, to_code, verdict, created_at')
-      .gte('created_at', thirtyDaysAgo.toISOString())
-      .order('created_at', { ascending: true })
-      .then(({ data: rows, error: err }) => {
-        if (err) {
-          // Table doesn't exist yet (schema not run) — fall back to demo silently
-          const tableNotFound = err.message?.includes('schema cache') || err.message?.includes('does not exist')
-          if (tableNotFound) {
-            setData(buildDemo())
-          } else {
-            setError(err.message)
-          }
-        } else {
-          const all = rows ?? []
-          // No real data yet — show demo so the page is never empty
-          if (all.length === 0) {
-            setData({ ...buildDemo(), lastUpdated: 'no data yet — showing demo' })
-          } else {
-            setData({
-              totalSearches: all.length,
-              timeSeries:    groupByDay(all),
-              verdicts:      groupByVerdict(all),
-              routes:        topRoutes(all),
-              lastUpdated:   new Date().toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' }),
-            })
-          }
-        }
-        setLoading(false)
+    fetchSearches()
+      .then(rows => {
+        setData({
+          totalSearches: rows.length,
+          timeSeries:    groupByDay(rows),
+          verdicts:      groupByVerdict(rows),
+          routes:        topRoutes(rows),
+          lastUpdated:   new Date().toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' }),
+        })
       })
+      .catch(err => {
+        console.error('[StateChange] Analytics fetch error:', err.message)
+        // On any error fall back to demo data so the page is never broken
+        setData(buildDemo())
+        setError(err.message)
+      })
+      .finally(() => setLoading(false))
   }, [])
 
   return { data, loading, error }
 }
 
-// ── Demo data for local dev without Supabase ──────────────────────
+// ── Demo data — shown when table is empty or fetch fails ──────────
 function buildDemo() {
   const now = new Date()
   const rows = []
-
-  // Simulate 30 days of searches with realistic distribution
   const routes = [
-    { from: 'IN', to: 'TH', verdict: 'voa',  weight: 18 },
-    { from: 'IN', to: 'GE', verdict: 'free',  weight: 14 },
-    { from: 'IN', to: 'PT', verdict: 'visa',  weight: 10 },
-    { from: 'IN', to: 'AE', verdict: 'voa',   weight: 12 },
-    { from: 'IN', to: 'US', verdict: 'visa',  weight: 9  },
-    { from: 'GB', to: 'TH', verdict: 'free',  weight: 8  },
-    { from: 'IN', to: 'ID', verdict: 'free',  weight: 7  },
-    { from: 'DE', to: 'TH', verdict: 'free',  weight: 5  },
-    { from: 'NG', to: 'AE', verdict: 'visa',  weight: 4  },
-    { from: 'PK', to: 'TR', verdict: 'free',  weight: 3  },
+    { from_code: 'IN', to_code: 'TH', verdict: 'voa',  weight: 18 },
+    { from_code: 'IN', to_code: 'GE', verdict: 'free', weight: 14 },
+    { from_code: 'IN', to_code: 'PT', verdict: 'visa', weight: 10 },
+    { from_code: 'IN', to_code: 'AE', verdict: 'voa',  weight: 12 },
+    { from_code: 'IN', to_code: 'US', verdict: 'visa', weight: 9  },
+    { from_code: 'GB', to_code: 'TH', verdict: 'free', weight: 8  },
+    { from_code: 'IN', to_code: 'ID', verdict: 'free', weight: 7  },
+    { from_code: 'DE', to_code: 'TH', verdict: 'free', weight: 5  },
+    { from_code: 'NG', to_code: 'AE', verdict: 'visa', weight: 4  },
+    { from_code: 'PK', to_code: 'TR', verdict: 'free', weight: 3  },
   ]
-
   for (let d = 29; d >= 0; d--) {
     const date = new Date(now)
     date.setDate(date.getDate() - d)
-    // Volume grows slightly over time
-    const dailyCount = Math.floor(3 + (30 - d) * 0.6 + Math.random() * 4)
-    for (let i = 0; i < dailyCount; i++) {
+    const count = Math.floor(3 + (30 - d) * 0.6 + Math.random() * 4)
+    for (let i = 0; i < count; i++) {
       const r = routes[weightedRandom(routes.map(r => r.weight))]
       rows.push({ ...r, created_at: date.toISOString() })
     }
   }
-
   return {
     totalSearches: rows.length,
     timeSeries:    groupByDay(rows),
     verdicts:      groupByVerdict(rows),
     routes:        topRoutes(rows),
-    lastUpdated:   'demo mode',
+    lastUpdated:   'demo data',
   }
 }
 
