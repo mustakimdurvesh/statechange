@@ -12,8 +12,8 @@
 export const config = { runtime: 'edge' }
 
 // ── Publishable Supabase credentials (safe in source) ─────────────
-const supabaseUrl = 'https://czqsipfjtkxmbtutkwcn.supabase.co'
-const supabaseKey = 'sb_publishable_Sg4xsK8EI7r-CSxaQSGogA_LgKj0JfB'
+const SUPABASE_URL = 'https://czqsipfjtkxmbtutkwcn.supabase.co'
+const SUPABASE_KEY = 'sb_publishable_Sg4xsK8EI7r-CSxaQSGogA_LgKj0JfB'
 
 // ── Allowlists ────────────────────────────────────────────────────
 const VALID_PASSPORTS = new Set([

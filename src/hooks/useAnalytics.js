@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 
 // Read credentials directly — same values as src/lib/supabase.js
-const supabaseUrl = 'https://czqsipfjtkxmbtutkwcn.supabase.co'
-const supabaseKey = 'sb_publishable_Sg4xsK8EI7r-CSxaQSGogA_LgKj0JfB'
+const SUPABASE_URL = 'https://czqsipfjtkxmbtutkwcn.supabase.co'
+const SUPABASE_KEY = 'sb_publishable_Sg4xsK8EI7r-CSxaQSGogA_LgKj0JfB'
 
 // ── Raw REST fetch — bypasses PostgREST schema cache entirely ─────
 // The JS client caches the schema on init and throws if a table isn't
