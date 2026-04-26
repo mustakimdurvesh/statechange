@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 
-const SUPABASE_URL = 'https://wijgarmlllvlqfzxgoee.supabase.co'
-const SUPABASE_KEY = 'sb_publishable_BmuItK5AvBrdqJM9NOTqGA_Zh84U75U'
+const SUPABASE_URL = 'https://czqsipfjtkxmbtutkwcn.supabase.co'
+const SUPABASE_KEY = 'sb_publishable_Sg4xsK8EI7r-CSxaQSGogA_LgKj0JfB'
 
 const SB_HEADERS = {
   'apikey':        SUPABASE_KEY,
