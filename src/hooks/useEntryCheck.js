@@ -3,9 +3,7 @@ import { DB } from '../lib/db'
 
 // In dev without vercel dev running, fall back to local DB
 // In production (or with `vercel dev`), always hit the edge function
-//const USE_LOCAL = import.meta.env.DEV && import.meta.env.VITE_USE_LOCAL_DB !== 'false'
-const USE_LOCAL = false
-
+const USE_LOCAL = import.meta.env.DEV && import.meta.env.VITE_USE_LOCAL_DB !== 'false'
 
 export function useEntryCheck() {
   const [result, setResult]   = useState(null)

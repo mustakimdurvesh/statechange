@@ -3,7 +3,7 @@
 // to avoid PostgREST schema cache issues on new tables.
 import { createClient } from '@supabase/supabase-js'
 
-export const SUPABASE_URL = 'https://czqsipfjtkxmbtutkwcn.supabase.co'
-export const SUPABASE_KEY = 'sb_publishable_Sg4xsK8EI7r-CSxaQSGogA_LgKj0JfB'
+export const SUPABASE_URL = 'https://wijgarmlllvlqfzxgoee.supabase.co'
+export const SUPABASE_KEY = 'sb_publishable_BmuItK5AvBrdqJM9NOTqGA_Zh84U75U'
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
